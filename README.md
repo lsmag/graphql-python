@@ -14,12 +14,12 @@ And just `import graphql` to get started. This library mimics the standard `json
     query = """
     {
         user(232) {
-	          id,
+              id,
 	          name,
 	          photo(size: 50) {
-	              url,
-		            width,
-		            height
+	            url,
+                width,
+                height
 	          }
 	      }
     }
@@ -66,11 +66,13 @@ This query represents an *object* composed of:
  - some custom filters (`first(10)`)
    - it's a sequence of identifiers followed by a list of parameters. Order is important, so for example, `.after(id: 243442).first(10)` will be loaded as:
 
+
         "filters": [
             ("after", {"id": 243442}),
-	          ("first", 10)
+	        ("first", 10)
         ]
 	
+
  - and a list of properties (`url, name, address`)... basically either an identifier or another nested object.
 
 
@@ -82,8 +84,8 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     # Will fail :(
     graphql.loads("""
         user(42) {
-	          id,
-      	    name
+            id,
+            name
       	}
     """)
 
@@ -91,8 +93,8 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     graphql.loads("""
     {
         user(42) {
-	          id,
-      	    name
+	        id,
+            name
       	}
     }
     """)
@@ -101,12 +103,12 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     graphql.loads("""
     {
         user(42) {
-    	      id,
-      	    name
+            id,
+            name
       	}
 
         company(2) {
-      	    address
+            address
       	}
     }
     """)
