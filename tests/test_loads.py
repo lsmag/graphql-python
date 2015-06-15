@@ -51,7 +51,7 @@ def test_load_simple_object_with_filters():
     }""") == [
         {
             "name": "photos",
-            "filters": {"first": 2},
+            "filters": [("first", 2)],
             "properties": [
                 {"name": "url"},
                 {"name": "width"},
@@ -73,10 +73,10 @@ def test_load_simple_object_with_full_header():
         {
             "name": "photos",
             "params": {"username": "Louro Jose"},
-            "filters": {
-                "after": {"id": 232},
-                "sortBy": "username"
-            },
+            "filters": [
+                ("after", {"id": 232}),
+                ("sortBy", "username")
+            ],
             "properties": [
                 {"name": "url"},
                 {"name": "width"},
@@ -98,10 +98,10 @@ def test_load_simple_object_with_full_header_multiple_args():
         {
             "name": "photos",
             "params": {"username": "Louro Jose"},
-            "filters": {
-                "after": {"id": 232, "username": "Hebe"},
-                "sortBy": "url"
-            },
+            "filters": [
+                ("after", {"id": 232, "username": "Hebe"}),
+                ("sortBy", "url")
+            ],
             "properties": [
                 {"name": "url"},
                 {"name": "width"},

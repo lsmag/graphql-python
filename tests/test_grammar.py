@@ -106,16 +106,6 @@ def test_gql_object():
     assert grammar.gql_object.parseString(obj)['header'].asList() == ['user', ['232'], []]
     assert grammar.gql_object.parseString(obj)['properties'].asList() == ['id', 'name']
 
-    print """
-        user(232) {
-            id,
-            name,
-            photo(size: 50) {
-                url,
-                id
-            }
-        }
-    """[65:75]
     assert grammar.gql_object.parseString("""
         user(232) {
             id,

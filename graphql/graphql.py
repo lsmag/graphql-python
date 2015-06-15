@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import ast
 import six
+import json
 import pyparsing as pp
 from . import grammar
 
@@ -9,6 +9,30 @@ __all__ = ['loads', 'dumps']
 
 
 def loads(query):
+    """
+    Converts a GraphQL string into a Python dictionary.
+
+    >>> graphql.loads(\"\"\"
+    {
+        user(id: 232) {
+            id,
+            name
+        }
+    }
+    \"\"\")
+
+    [
+        {
+            "name": "user",
+            "params": {"id": 232},
+            "properties": [
+                {"name": "id"},
+                {"name": "name"}
+            ]
+        }
+    ]
+    """
+    
     data = []
 
     for parsed_obj in grammar.root.parseString(query):
@@ -17,13 +41,107 @@ def loads(query):
     return data
 
 
-def dumps(ast, indent=0):
-    # A cada nó, antes de adicionar,
-    # deve checar com a gramática se é permitido!
-    return '{%s}' % doc
+def dumps(ast, compact=False, indent=2):
+    """
+    Converts a Python dict representing a GraphQL structure to
+    its string form. The `compact` argument is a shorthand for `indent=0`,
+    so `graphql.dumps(x, compact=True) == graphql.dumps(x, indent=0)`.
+
+    >>> graphql.dumps([
+        {
+            "name": "user",
+            "params": {"id": 232},
+            "properties": [
+                {"name": "id"},
+                {"name": "name"}
+            ]
+        }
+    ], indent=4)
+
+    {
+        user(id: 232) {
+            id,
+            name
+        }
+    }
+    """
+    
+    if compact:
+        indent = 0
+    
+    chunks = ['{']
+    if indent > 0:
+        chunks.append('\n')
+
+    for obj in ast:
+        chunks.extend(dump_object(obj, indent))
+        chunks.append(',\n\n' if indent > 0 else ',')
+
+    chunks.pop(-1)  # remove the last comma
+    if indent > 0:
+        chunks.append('\n')
+    chunks.append('}')
+
+    return ''.join(chunks)
+
+
+def dump_object(obj, indent, indent_level=1):
+    """
+    Converts a python object to a GraphQL string
+    """
+    
+    is_compact = indent == 0
+    chunks = [] if is_compact else [' ' * indent * indent_level]
+
+    chunks.append(obj['name'])
+
+    if 'params' in obj:
+        chunks.extend(dump_params(obj['params'], is_compact))
+
+    if 'filters' in obj:
+        for filter_name, params in iter(obj['filters'].items()):
+            chunks.extend(['.', filter_name])
+            chunks.extend(dump_params(params, is_compact))
+
+    if 'properties' in obj:
+        chunks.append('{' if is_compact else ' {\n')
+
+        for prop in obj['properties']:
+            chunks.extend(dump_object(prop, indent, indent_level + 1))
+            chunks.append(',' if is_compact else ',\n')
+
+        chunks.pop(-1)  # remove the last comma
+        if is_compact:
+            chunks.append('}')
+        else:
+            chunks.extend(['\n', ' ' * indent * indent_level, '}'])
+
+    return chunks
+
+
+def dump_params(params, compact):
+    """
+    Converts list of params to a GraphQL representation.
+    """
+    
+    SEP = ': ' if not compact else ':'
+
+    if not isinstance(params, dict):
+        return ['(', json.dumps(params), ')']
+
+    chunks = ['(']
+    for k, v in iter(params.items()):
+        chunks.extend([k, SEP, json.dumps(v)])
+    chunks.append(')')
+    
+    return chunks
 
 
 def load_obj(parsed_obj):
+    """
+    Converts a parsed GraphQL object into a Python dict
+    """
+    
     name, params, filters = get_header(parsed_obj)
     properties = get_properties(parsed_obj)
 
@@ -32,7 +150,8 @@ def load_obj(parsed_obj):
         obj['params'] = load_args(params)
 
     if filters:
-        obj['filters'] = load_args(filters)
+        obj['filters'] = [(filter_[0], load_args(filter_[1:]))
+                           for filter_ in filters]
 
     obj['properties'] = []
     for p in properties:
@@ -45,30 +164,23 @@ def load_obj(parsed_obj):
 
 
 def load_args(args):
+    """
+    Converts parsed values inside parens into its Python equivalents.
+    """
+    
     if len(args) == 1 and isinstance(args[0], six.string_types):
-        return convert_literal(args[0])
+        return json.loads(args[0])
 
     parsed_args = {}
     for arg in args:
-        arg = arg.asList()
+        if not isinstance(arg, list):
+            arg = arg.asList()
+
         param = arg[0]
         arguments = arg[1:]
-
-        if len(arguments) == 1 and not isinstance(arguments[0], list):
-            parsed_args[param] = convert_literal(arguments[0])
-        else:
-            parsed_args[param] = dict((k, convert_literal(v))
-                                      for k, v in arguments)
+        parsed_args[param] = json.loads(arguments[0])
 
     return parsed_args
-
-
-def convert_literal(l):
-    return ast.literal_eval({
-        "null": "None",
-        "true": "True",
-        "false": "False"
-    }.get(l, l))
 
 
 def get_header(obj):
