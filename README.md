@@ -14,14 +14,14 @@ And just `import graphql` to get started. This library mimics the standard `json
     query = """
     {
         user(232) {
-	    id,
-	    name,
-	    photo(size: 50) {
-	        url,
-		width,
-		height
-	    }
-	}
+	          id,
+	          name,
+	          photo(size: 50) {
+	              url,
+		            width,
+		            height
+	          }
+	      }
     }
     """
 
@@ -29,30 +29,30 @@ And just `import graphql` to get started. This library mimics the standard `json
     # objects has now:
     [
         {
-	    "name": "user",
-	    "params": 232,
-	    "properties": [
-	        {"name": "id"},
-	        {"name": "name"},
-	        {
-		    "name": "photo",
-		    "params": {"size": 50},
-		    "properties": [
-		        {"name": "url"},
-		        {"name": "width"},
-		        {"name": "height"}
-		    ]
-		},
+	          "name": "user",
+	          "params": 232,
+	          "properties": [
+	              {"name": "id"},
+	              {"name": "name"},
+	              {
+		                "name": "photo",
+		                "params": {"size": 50},
+		                "properties": [
+		                    {"name": "url"},
+		                    {"name": "width"},
+		                    {"name": "height"}
+		                ]
+		            },
             ]
-	}
+	      }
     ]
 
 To understand how `loads` works, let's split this query into small parts:
 
     friends(user_id: 232).first(10) {
         url,
-	name,
-	address
+        name,
+        address
     }
 
 This query represents an *object* composed of:
@@ -67,9 +67,9 @@ This query represents an *object* composed of:
    - it's a sequence of identifiers followed by a list of parameters. Order is important, so for example, `.after(id: 243442).first(10)` will be loaded as:
 
         "filters": [
-	    ("after", {"id": 243442}),
-	    ("first", 10)
-	]
+            ("after", {"id": 243442}),
+	          ("first", 10)
+        ]
 	
  - and a list of properties (`url, name, address`)... basically either an identifier or another nested object.
 
@@ -82,18 +82,18 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     # Will fail :(
     graphql.loads("""
         user(42) {
-	    id,
-	    name
-	}
+	          id,
+      	    name
+      	}
     """)
 
     # Much better :) ... don't forget those { } in the beginning and end of the query 
     graphql.loads("""
     {
         user(42) {
-	    id,
-	    name
-	}
+	          id,
+      	    name
+      	}
     }
     """)
 
@@ -101,13 +101,13 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     graphql.loads("""
     {
         user(42) {
-	    id,
-	    name
-	}
+    	      id,
+      	    name
+      	}
 
         company(2) {
-	    address
-	}
+      	    address
+      	}
     }
     """)
 
@@ -115,13 +115,13 @@ Right now, this parser is *strict* (at least until the spec is released, obvious
     graphql.loads("""
     {
         user(42) {
-	    id,
-	    name
-	},  # <-- right here
+      	    id,
+      	    name
+      	},  # <-- right here
 
         company(2) {
-	    address
-	}
+      	    address
+      	}
     }
     """)
 
