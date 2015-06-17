@@ -15,6 +15,7 @@ setup(
     author='Lucas Sampaio',
     author_email='lucas@lsmagalhaes.com',
     description='Python implementation of GraphQL markup language',
+    packages=['graphql'],
     include_package_data=True,
     install_requires=read_req('requirements.txt'),
     tests_require=read_req('dev_requirements.txt'),
