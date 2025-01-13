@@ -1,4 +1,4 @@
 tox==2.0.2
-virtualenv==13.0.3
+virtualenv==20.26.6
 pytest==2.7.1
 mock==1.0.1
